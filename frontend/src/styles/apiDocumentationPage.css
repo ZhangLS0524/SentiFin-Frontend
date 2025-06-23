@@ -1,0 +1,159 @@
+.api-doc-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.api-doc-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #1a237e;
+  letter-spacing: 1px;
+}
+
+.api-doc-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.api-doc-section {
+  background: #f5f7fa;
+  border-radius: 12px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 8px rgba(26,35,126,0.06);
+  transition: box-shadow 0.2s;
+}
+.api-doc-section:hover {
+  box-shadow: 0 6px 24px rgba(26,35,126,0.12);
+}
+
+.api-doc-section h2 {
+  color: #283593;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.api-doc-description {
+  color: #37474f;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.api-doc-endpoint, .api-doc-example {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.api-doc-label {
+  font-weight: 600;
+  color: #1565c0;
+  margin-right: 8px;
+}
+
+code {
+  background: #e3eafc;
+  color: #0d47a1;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+}
+
+.api-doc-params {
+  margin: 20px 0 16px 0;
+  background: #f4f8fd;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(26,35,126,0.08);
+  padding: 18px 18px 10px 18px;
+  border: 1.5px solid #e3eafc;
+  overflow-x: auto;
+  position: relative;
+  border-left: 6px solid #1976d2;
+}
+.api-doc-params-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #1976d2;
+  letter-spacing: 0.5px;
+}
+.api-doc-params-icon {
+  color: #1976d2;
+  background: #e3eafc;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
+}
+.api-doc-params-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 1.08rem;
+  min-width: 420px;
+}
+.api-doc-params-table th, .api-doc-params-table td {
+  padding: 15px 20px;
+  border-bottom: 1.5px solid #e0e7ef;
+  text-align: left;
+  transition: background 0.2s;
+}
+.api-doc-params-table th {
+  background: #e3eafc;
+  color: #0d47a1;
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: 0.7px;
+  border-bottom: 2.5px solid #b6c6e3;
+  text-shadow: 0 1px 0 #fff;
+}
+.api-doc-params-table tr:last-child td {
+  border-bottom: none;
+}
+.api-doc-params-table tr:nth-child(even) td {
+  background: #f7fafd;
+}
+.api-doc-params-table tr:hover td {
+  background: #e8f0fe;
+}
+.api-doc-params-table td {
+  color: #26324d;
+  font-weight: 500;
+}
+@media (max-width: 700px) {
+  .api-doc-params {
+    padding: 10px 2px 6px 2px;
+  }
+  .api-doc-params-table th, .api-doc-params-table td {
+    padding: 8px 6px;
+    font-size: 0.97rem;
+  }
+  .api-doc-params-table {
+    min-width: 320px;
+  }
+}
+
+@media (max-width: 600px) {
+  .api-doc-container {
+    padding: 12px 2px;
+  }
+  .api-doc-section {
+    padding: 14px 6px;
+  }
+  .api-doc-title {
+    font-size: 2rem;
+  }
+} 

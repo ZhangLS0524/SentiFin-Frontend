@@ -83,6 +83,8 @@ export const chatService = {
                 attachment: attachment || null
             };
             
+            const response = await api.post(`/message/chat/${chatId}/user/${userId}`, messageData);
+            return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
         }

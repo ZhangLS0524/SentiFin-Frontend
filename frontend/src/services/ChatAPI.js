@@ -75,30 +75,14 @@ export const chatService = {
     // Send a message
     sendMessage: async (chatId, message, userId, attachment = null) => {
         try {
-            if (attachment) {
-                // If there's an attachment, use FormData
-                const formData = new FormData();
-                formData.append('content', message);
-                formData.append('attachment', attachment);
-                formData.append('chatId', chatId);
-                formData.append('senderId', userId);
-
-                const response = await api.post(`/message/chat/${chatId}/user/${userId}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                return response.data;
-            } else {
-                // If no attachment, send as regular JSON
-                const messageData = {
-                    content: message,
-                    chatId: chatId,
-                    senderId: userId
-                };
-                const response = await api.post(`/message/chat/${chatId}/user/${userId}`, messageData);
-                return response.data;
-            }
+            // Always send as JSON with base64 attachment (consistent with ForumAPI)
+            const messageData = {
+                content: message,
+                chatId: chatId,
+                senderId: userId,
+                attachment: attachment || null
+            };
+            
         } catch (error) {
             throw error.response?.data || error.message;
         }

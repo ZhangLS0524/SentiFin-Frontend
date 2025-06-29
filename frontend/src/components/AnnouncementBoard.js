@@ -1,12 +1,120 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { AnnouncementAPI } from '../services/AnnouncementAPI';
+import Swal from 'sweetalert2';
 
-const AnnouncementBoard = () => (
-  <div className="border rounded p-3 h-100 bg-white">
-    <h5 className="fw-bold">Announcement</h5>
-    <div className="mt-4 text-center text-secondary">
-      ANNOUNCEMENT
+const AnnouncementBoard = () => {
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAnnouncements();
+  }, []);
+
+  const loadAnnouncements = async () => {
+    try {
+      const data = await AnnouncementAPI.getAllAnnouncements();
+      // Show only the latest 3 announcements
+      setAnnouncements(data.slice(0, 3));
+    } catch (error) {
+      console.error('Error loading announcements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to handle attachment display
+  const handleAttachmentClick = (attachment) => {
+    if (!attachment) return;
+    
+    // Check if it's an image
+    if (attachment.startsWith('data:image')) {
+      Swal.fire({
+        title: 'Attachment',
+        imageUrl: attachment,
+        imageWidth: '100%',
+        imageHeight: 'auto',
+        imageAlt: 'Announcement attachment',
+        confirmButtonText: 'Close'
+      });
+    } else {
+      // For non-image files, trigger download
+      const link = document.createElement('a');
+      link.href = attachment;
+      
+      // Extract filename from base64 or use default
+      let filename = 'attachment';
+      if (attachment.includes('pdf')) {
+        filename = 'document.pdf';
+      } else if (attachment.includes('doc')) {
+        filename = 'document.doc';
+      } else if (attachment.includes('docx')) {
+        filename = 'document.docx';
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // Function to get attachment icon based on file type
+  const getAttachmentIcon = (attachment) => {
+    if (!attachment) return null;
+    
+    if (attachment.startsWith('data:image')) {
+      return '🖼️';
+    } else if (attachment.includes('pdf')) {
+      return '📄';
+    } else if (attachment.includes('doc')) {
+      return '📝';
+    } else {
+      return '📎';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="border rounded p-3 h-100 bg-white announcement-board">
+        <h5 className="fw-bold">Announcements</h5>
+        <div className="mt-4 text-center text-secondary">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border rounded p-3 h-100 bg-white announcement-board">
+      <h5 className="fw-bold">Announcements</h5>
+      <div className="mt-3">
+        {announcements.length === 0 ? (
+          <div className="text-center text-secondary">
+            No announcements
+          </div>
+        ) : (
+          announcements.map((announcement) => (
+            <div key={announcement.id} className="mb-3 p-2 border-bottom">
+              <h6 className="fw-bold mb-1">{announcement.title}</h6>
+              <p className="text-muted small mb-1">{announcement.description}</p>
+              {announcement.attachment && (
+                <button 
+                  className="btn btn-link btn-sm p-0 text-primary"
+                  onClick={() => handleAttachmentClick(announcement.attachment)}
+                  style={{ textDecoration: 'none', fontSize: '0.8rem' }}
+                >
+                  {getAttachmentIcon(announcement.attachment)} View Attachment
+                </button>
+              )}
+              <div className="text-muted small">
+                {new Date(announcement.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AnnouncementBoard; 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {Button, Modal, Form, Alert } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,17 +10,20 @@ import { Delete, Edit } from '@mui/icons-material';
 const AdminAnnouncementsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [announcements, setAnnouncements] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    attachmentUrl: '',
+    attachment: null,
     userId: null
   });
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') {
@@ -49,17 +52,24 @@ const AdminAnnouncementsPage = () => {
       setFormData({
         title: announcement.title,
         description: announcement.description,
-        attachmentUrl: announcement.attachmentUrl || '',
+        attachment: announcement.attachment || null,
         userId: user.id
       });
+      setAttachmentPreview(announcement.attachment || null);
     } else {
       setSelectedAnnouncement(null);
       setFormData({
         title: '',
         description: '',
-        attachmentUrl: '',
+        attachment: null,
         userId: user.id
       });
+      setAttachmentPreview(null);
+      // Reset file input for new announcement
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setFileInputKey(prevKey => prevKey + 1);
     }
     setShowModal(true);
   };
@@ -70,9 +80,15 @@ const AdminAnnouncementsPage = () => {
     setFormData({
       title: '',
       description: '',
-      attachmentUrl: '',
+      attachment: null,
       userId: null
     });
+    setAttachmentPreview(null);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setFileInputKey(prevKey => prevKey + 1);
   };
 
   const handleInputChange = (e) => {
@@ -81,6 +97,124 @@ const AdminAnnouncementsPage = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Convert file to base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    const allowedTypes = [
+      'image/png', 'image/jpeg', 'image/jpg', 'image/webp',
+      'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire({
+        title: 'Invalid file type',
+        text: 'Please select a valid file type (Images, PDF, DOC, DOCX)',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        title: 'File too large',
+        text: 'Please select a file smaller than 5MB.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    try {
+      const base64 = await convertToBase64(file);
+      setFormData(prev => ({ ...prev, attachment: base64 }));
+      setAttachmentPreview(base64);
+    } catch (error) {
+      console.error('Error converting file to base64:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to process the file.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
+
+  // Remove attachment
+  const removeAttachment = () => {
+    setFormData(prev => ({ ...prev, attachment: null }));
+    setAttachmentPreview(null);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setFileInputKey(prevKey => prevKey + 1);
+  };
+
+  // Function to handle attachment display
+  const handleAttachmentClick = (attachment) => {
+    if (!attachment) return;
+    
+    // Check if it's an image
+    if (attachment.startsWith('data:image')) {
+      Swal.fire({
+        title: 'Attachment',
+        imageUrl: attachment,
+        imageWidth: '100%',
+        imageHeight: 'auto',
+        imageAlt: 'Announcement attachment',
+        confirmButtonText: 'Close'
+      });
+    } else {
+      // For non-image files, trigger download
+      const link = document.createElement('a');
+      link.href = attachment;
+      
+      // Extract filename from base64 or use default
+      let filename = 'attachment';
+      if (attachment.includes('pdf')) {
+        filename = 'document.pdf';
+      } else if (attachment.includes('doc')) {
+        filename = 'document.doc';
+      } else if (attachment.includes('docx')) {
+        filename = 'document.docx';
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // Function to get attachment icon based on file type
+  const getAttachmentIcon = (attachment) => {
+    if (!attachment) return null;
+    
+    if (attachment.startsWith('data:image')) {
+      return '🖼️';
+    } else if (attachment.includes('pdf')) {
+      return '📄';
+    } else if (attachment.includes('doc')) {
+      return '📝';
+    } else {
+      return '📎';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -179,14 +313,10 @@ const AdminAnnouncementsPage = () => {
                 <TableCell>{announcement.title}</TableCell>
                 <TableCell>{announcement.description}</TableCell>
                 <TableCell>
-                  {announcement.attachmentUrl ? (
-                    <a 
-                      href={announcement.attachmentUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      View Attachment
-                    </a>
+                  {announcement.attachment ? (
+                    <IconButton color="primary" onClick={() => handleAttachmentClick(announcement.attachment)}>
+                      {getAttachmentIcon(announcement.attachment)}
+                    </IconButton>
                   ) : (
                     'No attachment'
                   )}
@@ -238,15 +368,27 @@ const AdminAnnouncementsPage = () => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Attachment URL (Optional)</Form.Label>
+              <Form.Label>Attachment</Form.Label>
               <Form.Control
-                type="url"
-                name="attachmentUrl"
-                value={formData.attachmentUrl}
-                onChange={handleInputChange}
-                placeholder="https://example.com/attachment.pdf"
+                type="file"
+                ref={fileInputRef}
+                key={fileInputKey}
+                onChange={handleFileUpload}
               />
             </Form.Group>
+
+            {attachmentPreview && (
+              <div className="mb-3">
+                <img
+                  src={attachmentPreview}
+                  alt="Attachment Preview"
+                  style={{ maxWidth: '100%', maxHeight: '200px' }}
+                />
+                <Button variant="secondary" onClick={removeAttachment}>
+                  Remove Attachment
+                </Button>
+              </div>
+            )}
           </Form>
         </Modal.Body>
         <Modal.Footer>

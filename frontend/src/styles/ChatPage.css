@@ -151,9 +151,8 @@
 }
 
 .content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto 0 250px;
-  padding: 0 1.5rem;
+  margin: 0;
+  padding: 0;
   width: 100%;
 }
 

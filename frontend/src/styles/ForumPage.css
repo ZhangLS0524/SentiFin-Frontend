@@ -106,7 +106,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #666;
+  color: #007bff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.forum-attachment:hover {
+  background-color: #e3f2fd;
+  color: #0056b3;
 }
 
 .attachment-icon {
@@ -177,9 +185,8 @@
 }
 
 .content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto 0 250px;
-  padding: 0 1.5rem;
+  margin: 0;
+  padding: 0;
   width: 100%;
 }
 

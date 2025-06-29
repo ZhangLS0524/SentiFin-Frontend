@@ -81,6 +81,38 @@
     color: #212529;
 }
 
+/* Attachment button styling */
+.btn-link.attachment-link {
+    color: #007bff;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-link.attachment-link:hover {
+    background-color: #e3f2fd;
+    color: #0056b3;
+    text-decoration: none;
+}
+
+/* Announcement board attachment styling */
+.announcement-board .btn-link {
+    color: #007bff;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.announcement-board .btn-link:hover {
+    background-color: #e3f2fd;
+    color: #0056b3;
+    text-decoration: none;
+}
+
 @media (max-width: 768px) {
     .announcements-grid {
         grid-template-columns: 1fr;

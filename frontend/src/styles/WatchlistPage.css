@@ -61,4 +61,46 @@
   .stock-metrics-card .row.g-2 > [class^='col-'] {
     margin-bottom: 0.5rem;
   }
+}
+
+/* Enhanced tooltip styles for metrics */
+.stock-metrics-card span[title] {
+  cursor: help;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.stock-metrics-card span[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: normal;
+  white-space: nowrap;
+  z-index: 1000;
+  max-width: 300px;
+  white-space: normal;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0.25rem;
+}
+
+/* Color coding indicators */
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
 } 

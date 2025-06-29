@@ -8,6 +8,8 @@ const stockInfoSample = {
     "current_price": 196.58,
     "market_cap": 2936079646720.0,
     "pe_ratio": 30.572319,
+    "forward_pe": 28.45,
+    "peg_ratio": 1.85,
     "dividend_yield": 53.0,
     "52_week_high": 260.1,
     "52_week_low": 169.21,

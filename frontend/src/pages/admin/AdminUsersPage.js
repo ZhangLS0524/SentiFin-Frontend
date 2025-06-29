@@ -54,7 +54,14 @@ const AdminUsersPage = () => {
   };
 
   const handleSubmitForm = () => {
-    const action = editingId ? userService.updateUser(editingId, form) : userService.register(form);
+    let payload = { ...form };
+    
+    // If editing and password is empty, remove it from payload to preserve existing password
+    if (editingId && !form.password) {
+      delete payload.password;
+    }
+    
+    const action = editingId ? userService.updateUser(editingId, payload) : userService.register(form);
     action
       .then(() => {
         setSnackbar({ open: true, message: editingId ? 'User updated' : 'User created', severity: 'success' });

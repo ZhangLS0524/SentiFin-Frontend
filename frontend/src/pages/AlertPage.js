@@ -11,7 +11,9 @@ const AlertPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState([]);
+  const [availableTickers, setAvailableTickers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [tickersLoading, setTickersLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fetchAlerts = useCallback(async () => {
@@ -28,11 +30,26 @@ const AlertPage = () => {
     }
   }, [user]);
 
+  // Fetch available tickers for dropdown
+  const fetchAvailableTickers = useCallback(async () => {
+    setTickersLoading(true);
+    try {
+      const data = await TickerAPI.getAllTickers(true); // Get only active tickers
+      setAvailableTickers(data);
+    } catch (err) {
+      console.error('Failed to load available tickers:', err);
+      setAvailableTickers([]);
+    } finally {
+      setTickersLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (user) {
       fetchAlerts();
+      fetchAvailableTickers();
     }
-  }, [user, fetchAlerts]);
+  }, [user, fetchAlerts, fetchAvailableTickers]);
 
   // Validate ticker symbol using TickerAPI
   const validateTicker = async (ticker) => {
@@ -47,11 +64,22 @@ const AlertPage = () => {
   // Show SweetAlert2 popup for create/edit
   const showAlertPopup = async (mode, initial = {}) => {
     let isSubmitting = false;
+    
+    // Create ticker options for datalist
+    const tickerOptions = availableTickers
+      .sort((a, b) => a.symbol.localeCompare(b.symbol))
+      .map(ticker => `<option value="${ticker.symbol}" label="${ticker.symbol} - ${ticker.name}">`)
+      .join('');
+
     return Swal.fire({
       title: mode === 'edit' ? 'Edit Alert' : 'Create Alert',
       html:
-        `<input id="swal-ticker" class="swal2-input" placeholder="Ticker Symbol" value="${initial.ticker || ''}">` +
-        `<input id="swal-price" type="number" class="swal2-input" placeholder="Price" value="${initial.limitPrice || ''}">` +
+        `<input id="swal-ticker" class="swal2-input" placeholder="Type or select ticker symbol" value="${initial.ticker || ''}" list="ticker-list" style="width: 100%; margin-bottom: 10px;">` +
+        `<datalist id="ticker-list">` +
+          `<option value="">Select a ticker symbol...</option>` +
+          tickerOptions +
+        `</datalist>` +
+        `<input id="swal-price" type="number" class="swal2-input" placeholder="Price" value="${initial.limitPrice || ''}" step="0.01" min="0">` +
         `<select id="swal-direction" class="swal2-input">` +
           `<option value="UP" ${initial.direction === 'UP' ? 'selected' : ''}>Up</option>` +
           `<option value="DOWN" ${initial.direction === 'DOWN' ? 'selected' : ''}>Down</option>` +
@@ -65,17 +93,27 @@ const AlertPage = () => {
         const ticker = document.getElementById('swal-ticker').value.trim().toUpperCase();
         const price = parseFloat(document.getElementById('swal-price').value);
         const direction = document.getElementById('swal-direction').value;
-        if (!ticker || isNaN(price) || !direction) {
-          Swal.showValidationMessage('Please fill all fields correctly.');
+        
+        if (!ticker) {
+          Swal.showValidationMessage('Please enter a ticker symbol.');
           return false;
         }
+        if (isNaN(price) || price <= 0) {
+          Swal.showValidationMessage('Please enter a valid price greater than 0.');
+          return false;
+        }
+        if (!direction) {
+          Swal.showValidationMessage('Please select a direction.');
+          return false;
+        }
+        
         Swal.showLoading();
         isSubmitting = true;
         const valid = await validateTicker(ticker);
         Swal.hideLoading();
         isSubmitting = false;
         if (!valid) {
-          Swal.showValidationMessage('Invalid ticker symbol.');
+          Swal.showValidationMessage('Invalid ticker symbol. Please check the symbol or try selecting from the list.');
           return false;
         }
         return { ticker, limitPrice: price, direction };
@@ -85,6 +123,11 @@ const AlertPage = () => {
 
   // Create alert handler
   const handleCreateAlert = async () => {
+    if (tickersLoading) {
+      Swal.fire('Loading', 'Please wait while tickers are being loaded...', 'info');
+      return;
+    }
+
     const { value: formValues, isConfirmed } = await showAlertPopup('create');
     if (formValues && isConfirmed) {
       try {
@@ -108,6 +151,11 @@ const AlertPage = () => {
 
   // Edit alert handler
   const handleEditAlert = async (alert) => {
+    if (tickersLoading) {
+      Swal.fire('Loading', 'Please wait while tickers are being loaded...', 'info');
+      return;
+    }
+
     const { value: formValues, isConfirmed } = await showAlertPopup('edit', alert);
     if (formValues && isConfirmed) {
       try {
@@ -175,15 +223,25 @@ const AlertPage = () => {
   };
 
   return (
-    <div className="alert-page-container container py-4">
+    <div className="alert-page-container container py-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
       <div className="alert-page-header d-flex justify-content-between align-items-center mb-3">
         <h2>My Alerts</h2>
-        <Button variant="primary" onClick={handleCreateAlert}>
-          Create Alert
+        <Button 
+          variant="primary" 
+          onClick={handleCreateAlert}
+          disabled={tickersLoading}
+        >
+          {tickersLoading ? 'Loading...' : 'Create Alert'}
         </Button>
       </div>
       {loading && <Spinner animation="border" />}
       {error && <Alert variant="danger">{error}</Alert>}
+      {tickersLoading && (
+        <Alert variant="info">
+          <Spinner animation="border" size="sm" className="me-2" />
+          Loading available tickers...
+        </Alert>
+      )}
       {!loading && !error && (
         <Table className="alerts-table" striped bordered hover>
           <thead>
@@ -225,7 +283,13 @@ const AlertPage = () => {
                   </td>
                   <td>{alert.createdAt ? new Date(alert.createdAt).toLocaleString() : '-'}</td>
                   <td>
-                    <Button size="sm" variant="outline-primary" className="me-2" onClick={() => handleEditAlert(alert)}>
+                    <Button 
+                      size="sm" 
+                      variant="outline-primary" 
+                      className="me-2" 
+                      onClick={() => handleEditAlert(alert)}
+                      disabled={tickersLoading}
+                    >
                       Edit
                     </Button>
                     <Button size="sm" variant="outline-danger" onClick={() => handleDeleteAlert(alert)}>

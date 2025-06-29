@@ -1,0 +1,191 @@
+.stock-details-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  height: fit-content;
+}
+
+.stock-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.stock-details-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.stock-details-loading,
+.stock-details-error {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.stock-details-error button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.stock-details-error button:hover {
+  background: #c82333;
+}
+
+.stock-details-content {
+  padding: 1.5rem;
+}
+
+.stock-price-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.current-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.change {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.market-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.market-status {
+  font-size: 0.85rem;
+  color: #666;
+  padding: 0.25rem 0.5rem;
+  background: #e8f5e8;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.stock-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.metric-row:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+/* Enhanced tooltip styles */
+.metric-value[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: normal;
+  white-space: nowrap;
+  z-index: 1000;
+  max-width: 300px;
+  white-space: normal;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* Color coding for PEG ratio */
+.metric-value[title*="PEG"] {
+  position: relative;
+}
+
+/* Color coding for Forward P/E */
+.metric-value[title*="Forward P/E"] {
+  position: relative;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stock-details-container {
+    margin: 0 0.5rem 1rem 0.5rem;
+  }
+  
+  .stock-details-content {
+    padding: 1rem;
+  }
+  
+  .price {
+    font-size: 1.5rem;
+  }
+  
+  .metric-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .metric-value {
+    text-align: left;
+  }
+} 

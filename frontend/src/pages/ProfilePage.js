@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button, Card, Image, Alert } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/api';
+
+const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -16,6 +27,7 @@ const ProfilePage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -30,12 +42,35 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  const handleProfilePicChange = (e) => {
+  const handleProfilePicChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setPreviewImage(URL.createObjectURL(file));
-      setFormData(prev => ({ ...prev, profilePicture: file }));
+      if (!allowedTypes.includes(file.type)) {
+        setError('Please select a PNG, JPEG, JPG, or WebP image.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Please select an image smaller than 5MB.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      try {
+        const base64 = await convertToBase64(file);
+        setPreviewImage(base64);
+        setFormData(prev => ({ ...prev, profilePicture: base64 }));
+        setError('');
+      } catch (err) {
+        setError('Failed to process the image.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const removeProfilePicture = () => {
+    setPreviewImage(null);
+    setFormData(prev => ({ ...prev, profilePicture: null }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleInputChange = (e) => {
@@ -50,14 +85,15 @@ const ProfilePage = () => {
     setLoading(true);
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-
-      await userService.updateUser(user.id, formDataToSend);
+      // Only send fields that are present and not null, and omit password
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        altEmail: formData.altEmail,
+        profilePicture: formData.profilePicture
+      };
+      await userService.updateUser(user.id, payload);
       setSuccess('Profile updated successfully!');
     } catch (error) {
       setError(error.message || 'Failed to update profile. Please try again.');
@@ -90,11 +126,17 @@ const ProfilePage = () => {
                 Change Picture
                 <Form.Control
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
                   onChange={handleProfilePicChange}
+                  ref={fileInputRef}
                   style={{ display: 'none' }}
                 />
               </Form.Label>
+              {previewImage && (
+                <Button variant="outline-danger" size="sm" className="mt-2" onClick={removeProfilePicture}>
+                  Remove
+                </Button>
+              )}
             </div>
 
             <Form.Group className="mb-3" controlId="formUsername">

@@ -16,6 +16,15 @@ const ForumPage = () => {
     loadForums();
   }, []);
 
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const loadForums = async () => {
     try {
       setLoading(true);
@@ -55,12 +64,13 @@ const ForumPage = () => {
       html:
         '<input id="title" class="swal2-input" placeholder="Title">' +
         '<textarea id="description" class="swal2-textarea" placeholder="Description (max 100 characters)" maxlength="100"></textarea>' +
-        '<input type="file" id="attachment" class="swal2-file" accept="image/*,.pdf,.doc,.docx">',
+        '<input type="file" id="attachment" class="swal2-file" accept="image/*,.pdf,.doc,.docx">' +
+        '<small class="text-muted">Supported formats: Images (PNG, JPEG, JPG, WebP), PDF, DOC, DOCX. Max size: 5MB</small>',
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'Create Post',
       cancelButtonText: 'Cancel',
-      preConfirm: () => {
+      preConfirm: async () => {
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const attachment = document.getElementById('attachment').files[0];
@@ -74,11 +84,30 @@ const ForumPage = () => {
           Swal.showValidationMessage('Description must be 100 characters or less');
           return false;
         }
+
+        // Validate file if selected
+        if (attachment) {
+          // Check file size (5MB limit)
+          if (attachment.size > 5 * 1024 * 1024) {
+            Swal.showValidationMessage('File size must be less than 5MB');
+            return false;
+          }
+
+          // Check file type
+          const allowedTypes = [
+            'image/png', 'image/jpeg', 'image/jpg', 'image/webp',
+            'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          ];
+          if (!allowedTypes.includes(attachment.type)) {
+            Swal.showValidationMessage('Please select a valid file type (Images, PDF, DOC, DOCX)');
+            return false;
+          }
+        }
         
         return {
           title: title,
           description: description,
-          attachment: attachment ? attachment.name : null,
+          attachment: attachment ? await convertToBase64(attachment) : null,
           author: Number(user.id)
         };
       }
@@ -114,6 +143,59 @@ const ForumPage = () => {
     navigate(`/community/${forumId}`);
   };
 
+  // Function to handle attachment display
+  const handleAttachmentClick = (attachment, event) => {
+    event.stopPropagation(); // Prevent forum click
+    
+    if (!attachment) return;
+    
+    // Check if it's an image
+    if (attachment.startsWith('data:image')) {
+      Swal.fire({
+        title: 'Attachment',
+        imageUrl: attachment,
+        imageWidth: '100%',
+        imageHeight: 'auto',
+        imageAlt: 'Forum attachment',
+        confirmButtonText: 'Close'
+      });
+    } else {
+      // For non-image files, trigger download
+      const link = document.createElement('a');
+      link.href = attachment;
+      
+      // Extract filename from base64 or use default
+      let filename = 'attachment';
+      if (attachment.includes('pdf')) {
+        filename = 'document.pdf';
+      } else if (attachment.includes('doc')) {
+        filename = 'document.doc';
+      } else if (attachment.includes('docx')) {
+        filename = 'document.docx';
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // Function to get attachment icon based on file type
+  const getAttachmentIcon = (attachment) => {
+    if (!attachment) return null;
+    
+    if (attachment.startsWith('data:image')) {
+      return '🖼️';
+    } else if (attachment.includes('pdf')) {
+      return '📄';
+    } else if (attachment.includes('doc')) {
+      return '📝';
+    } else {
+      return '📎';
+    }
+  };
+
   if (error) {
     return (
       <div className="forumpage-full-wrapper">
@@ -133,7 +215,7 @@ const ForumPage = () => {
   }
 
   return (
-    <div className="forumpage-full-wrapper">
+    <div className="forumpage">
       <div className="content-wrapper">
         <div className="forum-header">
           <h1>Discussion Forum</h1>
@@ -171,9 +253,13 @@ const ForumPage = () => {
                       Posted by: {forum.author?.username || 'Anonymous'}
                     </span>
                     {forum.attachment && (
-                      <div className="forum-attachment">
-                        <span className="attachment-icon">📎</span>
-                        <span>Has attachment</span>
+                      <div 
+                        className="forum-attachment"
+                        onClick={(e) => handleAttachmentClick(forum.attachment, e)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <span className="attachment-icon">{getAttachmentIcon(forum.attachment)}</span>
+                        <span>View attachment</span>
                       </div>
                     )}
                   </div>

@@ -3,6 +3,7 @@ import { Card, Alert, Spinner, Button } from 'react-bootstrap';
 import { AnnouncementAPI } from '../services/AnnouncementAPI';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 import '../styles/Announcements.css';
 
 const Announcements = () => {
@@ -31,6 +32,57 @@ const Announcements = () => {
 
     const handleViewMore = () => {
         navigate(user?.role === 'ADMIN' ? '/admin/announcements' : '/announcements');
+    };
+
+    // Function to handle attachment display
+    const handleAttachmentClick = (attachment) => {
+        if (!attachment) return;
+        
+        // Check if it's an image
+        if (attachment.startsWith('data:image')) {
+            Swal.fire({
+                title: 'Attachment',
+                imageUrl: attachment,
+                imageWidth: '100%',
+                imageHeight: 'auto',
+                imageAlt: 'Announcement attachment',
+                confirmButtonText: 'Close'
+            });
+        } else {
+            // For non-image files, trigger download
+            const link = document.createElement('a');
+            link.href = attachment;
+            
+            // Extract filename from base64 or use default
+            let filename = 'attachment';
+            if (attachment.includes('pdf')) {
+                filename = 'document.pdf';
+            } else if (attachment.includes('doc')) {
+                filename = 'document.doc';
+            } else if (attachment.includes('docx')) {
+                filename = 'document.docx';
+            }
+            
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
+    // Function to get attachment icon based on file type
+    const getAttachmentIcon = (attachment) => {
+        if (!attachment) return null;
+        
+        if (attachment.startsWith('data:image')) {
+            return '🖼️';
+        } else if (attachment.includes('pdf')) {
+            return '📄';
+        } else if (attachment.includes('doc')) {
+            return '📝';
+        } else {
+            return '📎';
+        }
     };
 
     if (loading) {
@@ -73,16 +125,15 @@ const Announcements = () => {
                         <Card.Body>
                             <Card.Title>{announcement.title}</Card.Title>
                             <Card.Text>{announcement.description}</Card.Text>
-                            {announcement.attachmentUrl && (
+                            {announcement.attachment && (
                                 <div className="mt-2">
-                                    <a 
-                                        href={announcement.attachmentUrl} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="attachment-link"
+                                    <button 
+                                        className="btn btn-link p-0 attachment-link"
+                                        onClick={() => handleAttachmentClick(announcement.attachment)}
+                                        style={{ textDecoration: 'none' }}
                                     >
-                                        View Attachment
-                                    </a>
+                                        {getAttachmentIcon(announcement.attachment)} View Attachment
+                                    </button>
                                 </div>
                             )}
                             <div className="announcement-meta">

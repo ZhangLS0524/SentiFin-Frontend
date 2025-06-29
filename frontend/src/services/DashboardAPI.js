@@ -13,7 +13,7 @@ export const DashboardAPI = {
   getCompanyAndRelated: async (ticker) => {
     try {
       // Construct the prompt for the LLM
-      const prompt = `Given the stock ticker '${ticker}', return a JSON object with the full company name and up to 5 relevant companies (with their tickers and relationship to the main company). Example format: {\n  "name": "Apple Inc",\n  "companies": [\n    { "name": "Microsoft", "ticker": "MSFT", "relationship": "competitor" },\n    ...\n  ]\n}`;
+      const prompt = `Given the stock ticker '${ticker}', return ONLY a valid JSON object with the full company name and up to 5 relevant companies. The response must be valid JSON, no other text. Use only "competitor" or "partnership" as relationship types. Example format: {"name": "Apple Inc", "companies": [{"name": "Microsoft", "ticker": "MSFT", "relationship": "competitor"}, {"name": "Intel", "ticker": "INTC", "relationship": "partnership"}]}`;
 
       // Call the Gemini LLM API (Google Gemini format)
       const response = await axios.post(
@@ -41,12 +41,50 @@ export const DashboardAPI = {
           .replace(/^```\s*/i, '')
           .replace(/```$/i, '')
           .trim();
-        return JSON.parse(cleaned);
+        
+        // Try to find JSON in the response if it's not pure JSON
+        let jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const jsonText = jsonMatch[0];
+          const parsed = JSON.parse(jsonText);
+          
+          // Ensure relationships are only "competitor" or "partnership"
+          if (parsed.companies) {
+            parsed.companies = parsed.companies.map(company => ({
+              ...company,
+              relationship: company.relationship === 'competitor' || company.relationship === 'partnership' 
+                ? company.relationship 
+                : 'competitor' // default to competitor if invalid
+            }));
+          }
+          
+          return parsed;
+        } else {
+          throw new Error('No valid JSON found in response');
+        }
       } else {
         throw new Error('Unexpected response format from Gemini API');
       }
     } catch (error) {
       console.log('DashboardAPI error:', error);
+      throw error.response?.data || error.message;
+    }
+  },
+  getStockForecast: async (ticker, time_from, time_to, related_tickers, relationships) => {
+    const url = `http://localhost:8000/api/PredictStockPrice`;
+    try {
+      const response = await axios.get(url, {
+        params: {
+          ticker,
+          time_from,
+          time_to,
+          related_tickers,
+          relationships,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Forecast API error:', error);
       throw error.response?.data || error.message;
     }
   },

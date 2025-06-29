@@ -78,6 +78,33 @@ const HomePage = () => {
     navigate(`/dashboard?ticker=${ticker}`);
   };
 
+  const getPEGColor = (pegRatio) => {
+    if (!pegRatio) return '';
+    if (pegRatio < 1.0) return 'text-success'; // Green - undervalued
+    if (pegRatio <= 2.0) return 'text-warning'; // Orange - fair value
+    return 'text-danger'; // Red - overvalued
+  };
+
+  const getForwardPEColor = (forwardPE, trailingPE) => {
+    if (!forwardPE || !trailingPE) return '';
+    // Green if forward P/E is lower than trailing P/E (improving earnings)
+    if (forwardPE < trailingPE) return 'text-success';
+    // Red if forward P/E is higher than trailing P/E (declining earnings)
+    if (forwardPE > trailingPE) return 'text-danger';
+    return 'text-warning'; // Orange if they're similar
+  };
+
+  const getTooltipText = (metric) => {
+    switch (metric) {
+      case 'forward_pe':
+        return 'Forward P/E ratio is based on future earnings estimates. Lower values may indicate better value relative to expected earnings growth.';
+      case 'peg_ratio':
+        return 'PEG ratio (Price/Earnings-to-Growth) measures stock value relative to earnings growth. < 1.0 = undervalued, 1.0-2.0 = fair value, > 2.0 = overvalued.';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="container-fluid mt-3">
       <div className="row">
@@ -111,6 +138,24 @@ const HomePage = () => {
                                 <div className="mb-1"><span className="fw-semibold">Change:</span> <span className={metrics.day_change > 0 ? 'text-success' : metrics.day_change < 0 ? 'text-danger' : ''}>{metrics.day_change && metrics.prev_close ? (metrics.day_change * metrics.prev_close).toFixed(2) : '-'}</span></div>
                                 <div className="mb-1"><span className="fw-semibold">Change %:</span> <span className={metrics.day_change > 0 ? 'text-success' : metrics.day_change < 0 ? 'text-danger' : ''}>{metrics.day_change ? (metrics.day_change * 100).toFixed(2) + '%' : '-'}</span></div>
                                 <div className="mb-1"><span className="fw-semibold">P/E Ratio:</span> {metrics.pe_ratio ?? '-'}</div>
+                                <div className="mb-1">
+                                  <span className="fw-semibold">Forward P/E:</span> 
+                                  <span 
+                                    className={getForwardPEColor(metrics.forward_pe, metrics.pe_ratio)}
+                                    title={getTooltipText('forward_pe')}
+                                  >
+                                    {' '}{metrics.forward_pe ?? '-'}
+                                  </span>
+                                </div>
+                                <div className="mb-1">
+                                  <span className="fw-semibold">PEG Ratio:</span> 
+                                  <span 
+                                    className={getPEGColor(metrics.peg_ratio)}
+                                    title={getTooltipText('peg_ratio')}
+                                  >
+                                    {' '}{metrics.peg_ratio ?? '-'}
+                                  </span>
+                                </div>
                                 <div className="mb-1"><span className="fw-semibold">Market Cap:</span> {metrics.market_cap ? '$' + (metrics.market_cap/1e9).toFixed(2) + 'B' : '-'}</div>
                               </>
                             ) : null}

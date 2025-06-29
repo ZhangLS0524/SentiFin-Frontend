@@ -137,6 +137,57 @@ const ForumDetailPage = () => {
 
   const isAuthor = user && forum.author?.id === user.id;
 
+  // Function to handle attachment display
+  const handleAttachmentClick = (attachment) => {
+    if (!attachment) return;
+    
+    // Check if it's an image
+    if (attachment.startsWith('data:image')) {
+      Swal.fire({
+        title: 'Attachment',
+        imageUrl: attachment,
+        imageWidth: '100%',
+        imageHeight: 'auto',
+        imageAlt: 'Forum attachment',
+        confirmButtonText: 'Close'
+      });
+    } else {
+      // For non-image files, trigger download
+      const link = document.createElement('a');
+      link.href = attachment;
+      
+      // Extract filename from base64 or use default
+      let filename = 'attachment';
+      if (attachment.includes('pdf')) {
+        filename = 'document.pdf';
+      } else if (attachment.includes('doc')) {
+        filename = 'document.doc';
+      } else if (attachment.includes('docx')) {
+        filename = 'document.docx';
+      }
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  // Function to get attachment icon based on file type
+  const getAttachmentIcon = (attachment) => {
+    if (!attachment) return null;
+    
+    if (attachment.startsWith('data:image')) {
+      return '🖼️';
+    } else if (attachment.includes('pdf')) {
+      return '📄';
+    } else if (attachment.includes('doc')) {
+      return '📝';
+    } else {
+      return '📎';
+    }
+  };
+
   return (
     <div className="forumdetail-full-wrapper">
       <div className="content-wrapper">
@@ -169,11 +220,13 @@ const ForumDetailPage = () => {
             </div>
             <p className="forum-description">{forum.description}</p>
             {forum.attachment && (
-              <div className="forum-attachment">
-                <span className="attachment-icon">📎</span>
-                <a href={forum.attachment} target="_blank" rel="noopener noreferrer">
-                  View Attachment
-                </a>
+              <div 
+                className="forum-attachment"
+                onClick={() => handleAttachmentClick(forum.attachment)}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="attachment-icon">{getAttachmentIcon(forum.attachment)}</span>
+                <span>View attachment</span>
               </div>
             )}
           </div>

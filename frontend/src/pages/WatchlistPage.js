@@ -120,6 +120,22 @@ const WatchlistPage = () => {
     navigate(`/dashboard?ticker=${ticker}`);
   };
 
+  const getPEGColor = (pegRatio) => {
+    if (!pegRatio) return '';
+    if (pegRatio < 1.0) return 'text-success'; // Green - undervalued
+    if (pegRatio <= 2.0) return 'text-warning'; // Orange - fair value
+    return 'text-danger'; // Red - overvalued
+  };
+
+  const getForwardPEColor = (forwardPE, trailingPE) => {
+    if (!forwardPE || !trailingPE) return '';
+    // Green if forward P/E is lower than trailing P/E (improving earnings)
+    if (forwardPE < trailingPE) return 'text-success';
+    // Red if forward P/E is higher than trailing P/E (declining earnings)
+    if (forwardPE > trailingPE) return 'text-danger';
+    return 'text-warning'; // Orange if they're similar
+  };
+
   // Filter available tickers by search and exclude those already in watchlist
   const filteredTickers = availableTickers.filter(tickerObj =>
     (tickerObj.symbol.toLowerCase().includes(search.toLowerCase()) ||

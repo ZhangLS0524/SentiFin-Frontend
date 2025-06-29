@@ -83,6 +83,16 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
+  color: #007bff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.forum-attachment:hover {
+  background-color: #e3f2fd;
+  color: #0056b3;
 }
 
 .forum-attachment a {

@@ -33,7 +33,13 @@ export const AnnouncementAPI = {
     // Create new announcement
     createAnnouncement: async (announcementData) => {
         try {
-            const response = await api.post('/announcements', announcementData);
+            const requestData = {
+                title: announcementData.title,
+                description: announcementData.description,
+                attachment: announcementData.attachment || null,
+                userId: announcementData.userId
+            };
+            const response = await api.post('/announcements', requestData);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -43,7 +49,13 @@ export const AnnouncementAPI = {
     // Update announcement
     updateAnnouncement: async (id, announcementData) => {
         try {
-            const response = await api.put(`/announcements/${id}`, announcementData);
+            const requestData = {
+                title: announcementData.title,
+                description: announcementData.description,
+                attachment: announcementData.attachment || null,
+                userId: announcementData.userId
+            };
+            const response = await api.put(`/announcements/${id}`, requestData);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Nav, Button, Dropdown } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../styles/Sidebar.css';
-import logo from '../assets/images/logo/logo.svg';
+import logo from '../assets/images/sentifin-logo.png';
 import { useAuth } from '../context/AuthContext';
 import { 
   FiHome, 
@@ -60,8 +60,10 @@ const Sidebar = ({ onToggle }) => {
     { path: '/admin/settings', icon: <FiSettings size={20} />, label: ' System Settings' },
   ];
 
-  const navItems = user?.role === 'ADMIN' 
-    ? [...baseNavItems, ...adminNavItems]
+  const navItems = user?.role === 'ADMIN'
+    ? [...baseNavItems, ...adminNavItems].filter(
+        (item, index, self) => index === self.findIndex(i => i.path === item.path)
+      )
     : baseNavItems;
 
   return (

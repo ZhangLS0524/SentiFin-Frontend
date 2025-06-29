@@ -58,18 +58,41 @@ main.sidebar-collapsed {
   display: flex;
   gap: 2rem;
   padding: 2rem;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.dashboard-content.with-stock-details {
+  gap: 1rem;
 }
 
 .dashboard-left {
   flex: 2;
   min-width: 350px;
+  transition: flex 0.3s ease;
 }
 
-.dashboard-right {
+.dashboard-content.with-stock-details .dashboard-left {
+  flex: 1.5;
+}
+
+.dashboard-stock-details {
   flex: 1;
-  min-width: 250px;
-  display: flex;
-  align-items: flex-start;
+  min-width: 350px;
+  max-width: 450px;
+  animation: slideIn 0.3s ease-out;
+  transform-origin: right;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .stock-info-box {
@@ -78,6 +101,64 @@ main.sidebar-collapsed {
   padding: 1.5rem;
   background: #fff;
   margin-bottom: 1rem;
+}
+
+.stock-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.stock-period-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stock-period-btns button {
+  padding: 0.3rem 0.9rem;
+  border: 1px solid #bbb;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+}
+
+.stock-period-btns button.active,
+.stock-period-btns button:focus {
+  background: #e0e0e0;
+  border-color: #888;
+}
+
+.stock-details-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.stock-details-toggle-btn {
+  padding: 0.3rem 0.9rem;
+  border: 1px solid #007bff;
+  background: #fff;
+  color: #007bff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.stock-details-toggle-btn:hover {
+  background: #007bff;
+  color: #fff;
+}
+
+.stock-details-toggle-btn.active {
+  background: #007bff;
+  color: #fff;
 }
 
 .stock-title {
@@ -115,29 +196,6 @@ main.sidebar-collapsed {
   margin-left: 0.5rem;
 }
 
-.stock-period-btns {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.stock-period-btns button {
-  padding: 0.3rem 0.9rem;
-  border: 1px solid #bbb;
-  background: #f8f9fa;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, border 0.2s;
-}
-
-.stock-period-btns button.active,
-.stock-period-btns button:focus {
-  background: #e0e0e0;
-  border-color: #888;
-}
-
 .data-box {
   border: 2px dashed #bbb;
   border-radius: 12px;
@@ -152,13 +210,29 @@ main.sidebar-collapsed {
   color: #888;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .dashboard-content {
     flex-direction: column;
     gap: 1.5rem;
   }
-  .dashboard-right {
+  
+  .dashboard-content.with-stock-details {
+    flex-direction: column;
+  }
+  
+  .dashboard-stock-details {
     min-width: unset;
+    max-width: unset;
+  }
+  
+  .stock-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .stock-details-toggle-container {
+    justify-content: center;
   }
 }
 
@@ -175,5 +249,19 @@ main.sidebar-collapsed {
   .dashboard-header {
     padding: 1rem 1rem 0.5rem 1rem;
     font-size: 1rem;
+  }
+  
+  .stock-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stock-period-btns {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .stock-details-toggle-container {
+    justify-content: center;
   }
 } 

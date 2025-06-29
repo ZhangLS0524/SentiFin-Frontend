@@ -31,7 +31,7 @@ const Announcements = () => {
     };
 
     const handleViewMore = () => {
-        navigate(user?.role === 'ADMIN' ? '/admin/announcements' : '/api/announcements');
+        navigate(user?.role === 'ADMIN' ? '/api/admin/announcements' : '/api/announcements');
     };
 
     // Function to handle attachment display
